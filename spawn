@@ -25,12 +25,12 @@ function setup(spawn){
   spawn.memory.bq = queue;
   spawn.memory.next = 0;
   spawn.memory.nextBuild = queue[0];
+  spawn.memory.buildId = 0;
   spawn.memory.resetTo = 4;//reset to guard when we hit the end of the queue
 }
 
-function buildNext(spawn){
+function setNext(spawn){
   var oldState = spawn.memory;
-  var result = spawn.createCreep(nbt.t.body,nbt.t.name + buildId,nbt.t.memory);
   var newState = {
     nextBuild:oldState.bq[oldState.next],
     next:(oldState.next == oldState.bq.length -1)?oldState.resetTo:oldState.next +1
@@ -41,22 +41,21 @@ function buildNext(spawn){
 function checkBuild(spawn){
   //just had some energy dropped off, so check if we can build anything
   var nbt = spawn.memory.nextBuild;
-  var canBuild = spawn.canCreateCreep(nbt.t.body);
+  var canBuild = spawn.canCreateCreep(nbt.body);
   if(canBuild === ERR_NOT_ENOUGH_ENERGY){
     if(spawn.energy === spawn.energyCapacity){
-      console.log("not enough capacity to build " + nbt.t.name);
+      console.log("not enough capacity to build " + nbt.name);
       //can't build this creep, so move to the next creep
       //TODO: construct an extension
-      spawn.memory = buildNext;
+      spawn.memory = setNext();
     }
   }
   if(canBuild === OK){
-    var buildId = (spawn.memory.buildId || 0) +1;
-    console.log("build id: "+ buildId);
-    spawn.memory.buildId = buildId;
-    console.log("create creep result: " + result);
-    spawn.memory.nextBuild = buildOrder[nbt.next];
-    console.log("next build: " + spawn.memory.nextBuild.t.name);
+    var buildId = spawn.memory.buildId;
+    var nm = spawn.name + "-" + nbt.name + "-" + buildId;
+    var result = spawn.createCreep(nbt.body,nm,nbt.memory);
+    console.log("create "+nm+" result: " + result);
+    spawn.memory = nextBuild();
   }
 }
 

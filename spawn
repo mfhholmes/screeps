@@ -1,12 +1,14 @@
-const HARVESTER = 'h';
-const BUILDER = 'b';
-const GUARD = 'g';
+const types={
+  HARVESTER:"h",
+  BUILDER:"b",
+  GUARD:"g"
+};
 
-const type_worker = {body:[WORK,CARRY,MOVE],name:"worker",memory:{role:HARVESTER}};
-const type_builder = {body:[WORK,CARRY,MOVE],name:"builder",memory:{role:BUILDER}};
-const type_fast_guard = {body:[ATTACK,MOVE,MOVE],name:"guard",memory:{role:GUARD}};
-const type_slow_guard = {body:[ATTACK,ATTACK,MOVE],name:"guard",memory:{role:GUARD}};
-const type_ranged_guard = {body:[RANGED_ATTACK,RANGED_ATTACK,MOVE],name:"guard",memory:{role:GUARD}};
+const type_worker = {body:[WORK,CARRY,MOVE],name:"worker",memory:{role:types.HARVESTER}};
+const type_builder = {body:[WORK,CARRY,MOVE],name:"builder",memory:{role:types.BUILDER}};
+const type_fast_guard = {body:[ATTACK,MOVE,MOVE],name:"guard",memory:{role:types.GUARD}};
+const type_slow_guard = {body:[ATTACK,ATTACK,MOVE],name:"guard",memory:{role:types.GUARD}};
+const type_ranged_guard = {body:[RANGED_ATTACK,RANGED_ATTACK,MOVE],name:"guard",memory:{role:types.GUARD}};
 
 
 function setup(spawn){
@@ -27,6 +29,7 @@ function setup(spawn){
   spawn.memory.nextBuild = queue[0];
   spawn.memory.buildId = 0;
   spawn.memory.resetTo = 4;//reset to guard when we hit the end of the queue
+  spawn.isSetUp = true;
 }
 
 function setNext(spawn){
@@ -47,7 +50,7 @@ function checkBuild(spawn){
       console.log("not enough capacity to build " + nbt.name);
       //can't build this creep, so move to the next creep
       //TODO: construct an extension
-      spawn.memory = setNext();
+      spawn.memory = setNext(spawn);
     }
   }
   if(canBuild === OK){
@@ -55,12 +58,15 @@ function checkBuild(spawn){
     var nm = spawn.name + "-" + nbt.name + "-" + buildId;
     var result = spawn.createCreep(nbt.body,nm,nbt.memory);
     console.log("create "+nm+" result: " + result);
-    spawn.memory = nextBuild();
+    var creep = Game.creeps[nm];
+    console.log("checking role: " + creep.memory.role);
+    spawn.memory = setNext(spawn);
   }
 }
 
 module.exports = {
   setup,
-  buildNext,
-  checkBuild
+  setNext,
+  checkBuild,
+  types
 };

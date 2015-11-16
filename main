@@ -3,18 +3,6 @@ var builder = require("builder");
 var guard = require('guard');
 var spawnBuild = require('spawn');
 
-const HARVESTER = 'h';
-const BUILDER = 'b';
-const GUARD = 'g';
-
-
-
-
-for(var sp_name in Game.spawns) {
-  var spawn = Game.spawns[sp_name];
-  spawnBuild.setup(spawn);
-  spawnBuild.checkBuild(spawn);
-}
 console.log("loaded OK");
 
 module.exports.loop = function () {
@@ -26,16 +14,23 @@ module.exports.loop = function () {
     }
   }
 
+  for(var sp_name in Game.spawns){
+    var spawn = Game.spawns[sp_name];
+    if(!spawn.memory.isSetUp){
+      spawnBuild.setup(spawn);
+      spawnBuild.checkBuild(spawn);
+    }
+  }
 	for(var name in Game.creeps) {
-		var creep = Game.creeps[name];
+    var creep = Game.creeps[name];
     switch(creep.memory.role){
-      case HARVESTER:
+      case spawnBuild.types.HARVESTER:
   	    harvester(creep);
   	    break;
-      case BUILDER:
+      case spawnBuild.types.BUILDER:
         builder(creep);
         break;
-      case GUARD:
+      case spawnBuild.types.GUARD:
         guard(creep);
         break;
       default:

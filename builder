@@ -1,7 +1,7 @@
 module.exports = function (creep) {
-    if(creep.carry.energy == 0) {
-		if(Game.spawns['Spawn1'].transferEnergy(creep) == ERR_NOT_IN_RANGE) {
-			creep.moveTo(Game.spawns["Spawn1"]);
+    if(creep.carry.energy === 0) {
+		if(Game.spawns.Spawn1.transferEnergy(creep) == ERR_NOT_IN_RANGE) {
+			creep.moveTo(Game.spawns.Spawn1);
 		}
 	}
 	else {
@@ -11,10 +11,10 @@ module.exports = function (creep) {
 				creep.moveTo(targets[0]);
 			}
 		} else {
-		    //upgrade the controller
+		    //upgrade the controller if there are no construction sites
 		    if(creep.upgradeController(creep.room.controller) ==  ERR_NOT_IN_RANGE){
 		        creep.moveTo(creep.room.controller);
 		    }
 		}
 	}
-}
+};

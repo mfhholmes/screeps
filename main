@@ -1,0 +1,74 @@
+var harvester = require('harvester');
+var builder = require("builder");
+var guard = require('guard');
+
+const HARVESTER = 'h';
+const BUILDER = 'b';
+const GUARD = 'g';
+
+const type_worker = {body:[WORK,CARRY,MOVE],name:"worker",memory:{role:HARVESTER}};
+const type_builder = {body:[WORK,CARRY,MOVE],name:"builder",memory:{role:BUILDER}};
+const type_fast_guard = {body:[ATTACK,MOVE,MOVE],name:"guard",memory:{role:GUARD}};
+const type_slow_guard = {body:[ATTACK,ATTACK,MOVE],name:"guard",memory:{role:GUARD}};
+const type_ranged_guard = {body:[RANGED_ATTACK,RANGED_ATTACK,MOVE],name:"guard",memory:{role:GUARD}};
+
+const buildOrder = [
+    {t:type_worker,next:1},
+    {t:type_worker,next:2},
+    {t:type_worker,next:3},
+    {t:type_builder,next:4},
+    {t:type_slow_guard,next:5},
+    {t:type_slow_guard,next:6},
+    {t:type_slow_guard,next:7},
+    {t:type_slow_guard,next:4}
+];
+console.log("loaded OK");
+
+module.exports.loop = function () {
+    //tidy up dead creeps
+    for(var i in Memory.creeps) {
+        if(!Game.creeps[i]) {
+            delete Memory.creeps[i];
+        }
+    }
+    for(var sp_name in Game.spawns) {
+        var spawn = Game.spawns[sp_name];
+        var nbt = spawn.memory.nextBuild || buildOrder[0];
+        var canBuild = spawn.canCreateCreep(nbt.t.body);
+        if(canBuild === -6){
+            if(spawn.energy === spawn.energyCapacity){
+                console.log("not enough capacity to build " + nbt.t.name);
+                //can't build this creep, so move to the next creep
+                //TODO: construct an extension
+                spawn.memory.nextBuild = nbt.next;
+            }
+        }
+        if(canBuild === 0){
+            var buildId = (spawn.memory.buildId || 0) +1;
+            console.log("build id: "+ buildId);
+            spawn.memory.buildId = buildId;
+            var result = spawn.createCreep(nbt.t.body,nbt.t.name + buildId,nbt.t.memory);
+            console.log("create creep result: " + result);
+            spawn.memory.nextBuild = buildOrder[nbt.next];
+            console.log("next build: " + spawn.memory.nextBuild.t.name);
+        }
+    }
+
+	for(var name in Game.creeps) {
+		var creep = Game.creeps[name];
+
+        switch(creep.memory.role){
+            case HARVESTER:
+        	    harvester(creep);
+        	    break;
+            case BUILDER:
+                builder(creep);
+                break;
+            case GUARD:
+                guard(creep);
+                break;
+            default:
+                console.log("unrecognised creep type: "+creep.memory.role);
+        }
+	}
+}
